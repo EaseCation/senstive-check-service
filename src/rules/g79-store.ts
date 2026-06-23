@@ -344,6 +344,14 @@ export class G79RuleStore {
 
     try {
       const sourceUrl = await resolveG79DownloadUrl();
+
+      // 拉到的下载地址与当前快照一致，本轮跳过更新，避免重复下载和解密。
+      const currentSnapshot = this.activeSnapshot;
+      if (currentSnapshot && currentSnapshot.sourceUrl === sourceUrl) {
+        console.log(`[g79] Skipped refresh (${reason}): sourceUrl unchanged`);
+        return currentSnapshot;
+      }
+
       const rules = await fetchAndDecryptG79Rules(sourceUrl);
       const nextSnapshot = this.createRuntimeSnapshot({
         updatedAt: new Date().toISOString(),
